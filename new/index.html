@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SHADE — Psychological Horror Expert</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&family=Crimson+Text:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:       #080808;
+      --surface:  #0f0f0f;
+      --border:   #1e1e1e;
+      --accent:   #8b0000;
+      --accent2:  #c0392b;
+      --text:     #d4c5a9;
+      --muted:    #6b6050;
+      --user-bg:  #130a0a;
+      --bot-bg:   #0a0c10;
+      --glow:     rgba(139,0,0,0.15);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Atmospheric background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(139,0,0,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 100% 100%, rgba(20,10,30,0.8) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(8,8,8,0.95);
+      backdrop-filter: blur(12px);
+    }
+
+    .logo-eye {
+      width: 36px;
+      height: 36px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .logo-eye svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .header-text h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #e8d5c0;
+      text-shadow: 0 0 20px var(--glow);
+    }
+
+    .header-text p {
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .status-dot {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #2d6a4f;
+      box-shadow: 0 0 6px #2d6a4f;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── Chat area ── */
+    #chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem;
+      position: relative;
+      z-index: 5;
+      scroll-behavior: smooth;
+    }
+
+    #chat-container::-webkit-scrollbar { width: 4px; }
+    #chat-container::-webkit-scrollbar-track { background: transparent; }
+    #chat-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Welcome message ── */
+    .welcome {
+      max-width: 680px;
+      margin: 2rem auto 3rem;
+      text-align: center;
+    }
+
+    .welcome h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 400;
+      font-style: italic;
+      color: #c5a882;
+      margin-bottom: 1rem;
+      line-height: 1.3;
+    }
+
+    .welcome p {
+      font-family: 'Crimson Text', serif;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+
+    .suggestion-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-top: 1.5rem;
+    }
+
+    .suggestion {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.7rem 1rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      font-family: 'Crimson Text', serif;
+      font-size: 0.95rem;
+      line-height: 1.3;
+    }
+
+    .suggestion:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      background: rgba(139,0,0,0.05);
+    }
+
+    /* ── Messages ── */
+    .message {
+      max-width: 720px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      margin-top: 2px;
+    }
+
+    .avatar.shade {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 12px var(--glow);
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+    }
+
+    .avatar.user {
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .bubble {
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      max-width: calc(100% - 44px);
+      font-family: 'Crimson Text', serif;
+      font-size: 1.05rem;
+      line-height: 1.75;
+    }
+
+    .message.bot .bubble {
+      background: var(--bot-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-top-left-radius: 2px;
+    }
+
+    .message.user .bubble {
+      background: var(--user-bg);
+      border: 1px solid rgba(139,0,0,0.25);
+      color: #c0a888;
+      border-top-right-radius: 2px;
+    }
+
+    .bubble em { font-style: italic; color: #c5a882; }
+    .bubble strong { font-weight: 600; color: #e0c9a8; }
+
+    /* ── Typing indicator ── */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0.9rem 1.25rem;
+    }
+
+    .typing-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: typing 1.2s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+      30% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* ── Input area ── */
+    footer {
+      position: relative;
+      z-index: 10;
+      padding: 1rem 2rem 1.5rem;
+      background: rgba(8,8,8,0.97);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+    }
+
+    .input-wrapper {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+
+    #user-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Crimson Text', serif;
+      font-size: 1.05rem;
+      padding: 0.85rem 1.1rem;
+      resize: none;
+      min-height: 48px;
+      max-height: 150px;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.5;
+    }
+
+    #user-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--glow);
+    }
+
+    #user-input::placeholder { color: var(--muted); font-style: italic; }
+
+    #send-btn {
+      width: 48px;
+      height: 48px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s, transform 0.1s;
+      color: #fff;
+    }
+
+    #send-btn:hover { background: var(--accent2); }
+    #send-btn:active { transform: scale(0.95); }
+    #send-btn:disabled { background: #2a1a1a; cursor: not-allowed; }
+
+    .footer-note {
+      max-width: 720px;
+      margin: 0.5rem auto 0;
+      font-size: 0.68rem;
+      color: #3a3028;
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+
+    /* ── Flag banner ── */
+    .flag-banner {
+      background: rgba(139,0,0,0.08);
+      border: 1px solid rgba(139,0,0,0.25);
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: #8b4040;
+      margin-bottom: 0.5rem;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 1rem; }
+      #chat-container { padding: 1rem; }
+      footer { padding: 0.75rem 1rem 1rem; }
+      .suggestion-grid { grid-template-columns: 1fr; }
+      .welcome h2 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-eye">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="20" cy="20" rx="18" ry="10" stroke="#8b0000" stroke-width="1.5" fill="none"/>
+      <circle cx="20" cy="20" r="6" fill="#8b0000" opacity="0.9"/>
+      <circle cx="20" cy="20" r="2.5" fill="#1a0000"/>
+      <circle cx="22" cy="18" r="1" fill="rgba(255,200,180,0.6)"/>
+    </svg>
+  </div>
+  <div class="header-text">
+    <h1>SHADE</h1>
+    <p>Psychological Horror · Film Expert</p>
+  </div>
+  <div class="status-dot">
+    <span class="dot"></span>
+    <span>Online</span>
+  </div>
+</header>
+
+<div id="chat-container">
+  <div class="welcome" id="welcome">
+    <h2>"The oldest and strongest emotion of mankind is fear."</h2>
+    <p>— H.P. Lovecraft<br><br>
+    I am SHADE, your guide through the cinema of psychological dread. I know the films that haunt long after the credits roll — the ones that burrow into the subconscious and linger there. Ask me about films, directors, themes, or the craft of psychological horror.</p>
+    <div class="suggestion-grid">
+      <button class="suggestion" onclick="sendSuggestion(this)">What makes Hereditary so psychologically disturbing?</button>
+      <button class="suggestion" onclick="sendSuggestion(this)">Recommend films about grief and loss in horror</button>
+      <button class="suggestion" onclick="sendSuggestion(this)">How does Midsommar use color and light to create dread?</button>
+      <button class="suggestion" onclick="sendSuggestion(this)">What are the best J-Horror films and why do they work?</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="input-wrapper">
+    <textarea
+      id="user-input"
+      placeholder="Ask about a film, director, theme, or recommendation…"
+      rows="1"
+      onkeydown="handleKey(event)"
+      oninput="autoResize(this)"
+    ></textarea>
+    <button id="send-btn" onclick="sendMessage()" title="Send">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+  <p class="footer-note">SHADE · Psychological horror films only · No gore · No personal advice</p>
+</footer>
+
+<script>
+  const chatContainer = document.getElementById('chat-container');
+  const input = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+  let history = [];
+  let isLoading = false;
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 150) + 'px';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function sendSuggestion(btn) {
+    input.value = btn.textContent;
+    sendMessage();
+  }
+
+  function appendMessage(role, text, flagged = false) {
+    const welcome = document.getElementById('welcome');
+    if (welcome) welcome.remove();
+
+    if (flagged) {
+      const banner = document.createElement('div');
+      banner.className = 'flag-banner';
+      banner.textContent = '⚠ Response filtered by safety layer';
+      chatContainer.appendChild(banner);
+    }
+
+    const msg = document.createElement('div');
+    msg.className = `message ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = `avatar ${role === 'bot' ? 'shade' : 'user'}`;
+    avatar.textContent = role === 'bot' ? 'S' : 'You'[0];
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    // Simple markdown-lite: bold and italic
+    bubble.innerHTML = text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    chatContainer.appendChild(msg);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    return msg;
+  }
+
+  function showTyping() {
+    const msg = document.createElement('div');
+    msg.className = 'message bot';
+    msg.id = 'typing';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar shade';
+    avatar.textContent = 'S';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble typing-indicator';
+    bubble.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    chatContainer.appendChild(msg);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typing');
+    if (t) t.remove();
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text || isLoading) return;
+
+    isLoading = true;
+    sendBtn.disabled = true;
+    input.value = '';
+    input.style.height = 'auto';
+
+    appendMessage('user', text);
+    history.push({ role: 'user', content: text });
+    showTyping();
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history: history.slice(-10) })
+      });
+
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+
+      removeTyping();
+      appendMessage('bot', data.reply, data.flagged);
+      history.push({ role: 'assistant', content: data.reply });
+
+    } catch (err) {
+      removeTyping();
+      appendMessage('bot', 'The darkness swallowed my response. Please try again. (' + err.message + ')');
+    } finally {
+      isLoading = false;
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+</script>
+</body>
+</html>
