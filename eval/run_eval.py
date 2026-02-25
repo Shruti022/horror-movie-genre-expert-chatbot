@@ -54,6 +54,7 @@ class TestResult:
 
 # ── Deterministic checks ───────────────────────────────────────────────────────
 def run_deterministic_check(test_case: dict, response: str) -> tuple[bool, str]:
+    """Verify must_contain_any / must_not_contain keyword rules on the response."""
     check = test_case.get("deterministic_check")
     if not check:
         return True, "no_deterministic_check"
@@ -96,6 +97,7 @@ Respond in this exact JSON format with no markdown:
 
 
 def maaj_golden_eval(test_case: dict, response: str) -> tuple[bool, float, str]:
+    """LLM-as-judge: score response against a golden reference answer (0-10)."""
     prompt = GOLDEN_JUDGE_PROMPT.format(
         question=test_case["input"],
         expected=test_case["expected_answer"],
@@ -135,6 +137,7 @@ Respond in this exact JSON format with no markdown:
 
 
 def maaj_rubric_eval(test_case: dict, response: str) -> tuple[bool, float, str]:
+    """LLM-as-judge: score response against a rubric checklist (0-100%, pass >= 70%)."""
     prompt = RUBRIC_JUDGE_PROMPT.format(
         question=test_case["input"],
         rubric=test_case.get("rubric", "Assess overall quality and relevance"),
@@ -158,6 +161,7 @@ def maaj_rubric_eval(test_case: dict, response: str) -> tuple[bool, float, str]:
 
 # ── Bot query ──────────────────────────────────────────────────────────────────
 def query_bot(url: str, message: str, timeout: int = 30) -> tuple[str, bool]:
+    """POST a message to the SHADE /chat endpoint; return (reply, flagged)."""
     try:
         resp = httpx.post(
             f"{url}/chat",
@@ -179,6 +183,7 @@ def print_separator(char="─", width=70):
 
 
 def print_result(result: TestResult, verbose: bool = False):
+    """Print pass/fail status and per-metric breakdown for a single test."""
     status = "✅ PASS" if result.overall_pass else "❌ FAIL"
     print(f"\n{status}  [{result.test_id}] {result.category}/{result.subcategory}")
     print(f"   Q: {result.input_text[:75]}{'...' if len(result.input_text) > 75 else ''}")
@@ -204,6 +209,7 @@ def print_result(result: TestResult, verbose: bool = False):
 
 
 def print_summary(results: list[TestResult]):
+    """Print aggregate stats: overall pass rate, by-category breakdown, and failed test IDs."""
     print_separator("═")
     print("EVALUATION SUMMARY")
     print_separator("═")
@@ -256,6 +262,8 @@ def print_summary(results: list[TestResult]):
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 def run_eval(url: str, dataset_path: str, verbose: bool = False, category_filter: Optional[str] = None):
+    """Main loop: load dataset, query the bot for each test case, run all
+    eval layers (deterministic + MaaJ), print results, and write JSON."""
     print_separator("═")
     print(f"SHADE EVALUATION HARNESS")
     print(f"Target: {url}")

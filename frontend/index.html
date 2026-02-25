@@ -424,11 +424,13 @@
   let history = [];
   let isLoading = false;
 
+  /** Grow/shrink textarea to fit content, capped at 150px. */
   function autoResize(el) {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 150) + 'px';
   }
 
+  /** Submit on Enter (Shift+Enter for newline). */
   function handleKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -436,11 +438,13 @@
     }
   }
 
+  /** Fill input with a suggestion chip's text and send it. */
   function sendSuggestion(btn) {
     input.value = btn.textContent;
     sendMessage();
   }
 
+  /** Render a user or bot message bubble (with optional safety-flag banner). */
   function appendMessage(role, text, flagged = false) {
     const welcome = document.getElementById('welcome');
     if (welcome) welcome.remove();
@@ -476,6 +480,7 @@
     return msg;
   }
 
+  /** Show animated "..." typing indicator while waiting for the bot. */
   function showTyping() {
     const msg = document.createElement('div');
     msg.className = 'message bot';
@@ -495,11 +500,13 @@
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
 
+  /** Remove the typing indicator once the bot responds. */
   function removeTyping() {
     const t = document.getElementById('typing');
     if (t) t.remove();
   }
 
+  /** POST user input to /chat, append bot reply, and update history. */
   async function sendMessage() {
     const text = input.value.trim();
     if (!text || isLoading) return;
