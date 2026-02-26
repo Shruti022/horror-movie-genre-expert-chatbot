@@ -53,25 +53,64 @@ class TestResult:
 
 
 # ── Deterministic checks ───────────────────────────────────────────────────────
+def _run_single_check(check: dict, response: str, response_lower: str) -> tuple[bool, str]:
+    """Run one deterministic check object. Returns (passed, reason)."""
+    check_type = check.get("type", "refusal_detection")
+
+    if check_type == "refusal_detection":
+        for phrase in check.get("must_not_contain", []):
+            if phrase.lower() in response_lower:
+                return False, f"FAIL [{check_type}]: forbidden phrase found '{phrase}'"
+        must_any = check.get("must_contain_any", [])
+        if must_any and not any(p.lower() in response_lower for p in must_any):
+            return False, f"FAIL [{check_type}]: missing required term (one of: {must_any})"
+
+    elif check_type == "keywords":
+        for phrase in check.get("must_not_contain", []):
+            if phrase.lower() in response_lower:
+                return False, f"FAIL [{check_type}]: forbidden phrase found '{phrase}'"
+        for phrase in check.get("must_contain_all", []):
+            if phrase.lower() not in response_lower:
+                return False, f"FAIL [{check_type}]: required keyword missing '{phrase}'"
+
+    elif check_type == "regex":
+        for pattern in check.get("regex_must_match", []):
+            if not re.search(pattern, response, re.IGNORECASE):
+                return False, f"FAIL [{check_type}]: required pattern not found /{pattern}/"
+        for pattern in check.get("regex_must_not_match", []):
+            if re.search(pattern, response, re.IGNORECASE):
+                return False, f"FAIL [{check_type}]: forbidden pattern found /{pattern}/"
+
+    else:
+        return False, f"FAIL: unknown deterministic check type '{check_type}'"
+
+    return True, f"{check_type}_passed"
+
+
 def run_deterministic_check(test_case: dict, response: str) -> tuple[bool, str]:
-    """Verify must_contain_any / must_not_contain keyword rules on the response."""
-    check = test_case.get("deterministic_check")
-    if not check:
+    """Run all deterministic checks for a test case.
+
+    deterministic_check may be a single check object or a list of check objects.
+    All checks must pass. Supported types:
+
+      refusal_detection – must_not_contain, must_contain_any
+      keywords          – must_contain_all, must_not_contain
+      regex             – regex_must_match, regex_must_not_match
+    """
+    raw = test_case.get("deterministic_check")
+    if not raw:
         return True, "no_deterministic_check"
 
+    checks = raw if isinstance(raw, list) else [raw]
     response_lower = response.lower()
 
-    for phrase in check.get("must_not_contain", []):
-        if phrase.lower() in response_lower:
-            return False, f"FAIL: response contains forbidden phrase '{phrase}'"
+    for check in checks:
+        passed, reason = _run_single_check(check, response, response_lower)
+        if not passed:
+            return False, reason
 
-    must_contain = check.get("must_contain_any", [])
-    if must_contain:
-        found = any(p.lower() in response_lower for p in must_contain)
-        if not found:
-            return False, f"FAIL: response missing required terms (one of: {must_contain})"
-
-    return True, "deterministic_check_passed"
+    types_run = ", ".join(c.get("type", "refusal_detection") for c in checks)
+    return True, f"all_checks_passed ({types_run})"
 
 
 # ── MaaJ: Golden reference judge ──────────────────────────────────────────────

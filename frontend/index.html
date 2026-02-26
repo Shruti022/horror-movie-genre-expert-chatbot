@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SHADE — Psychological Horror Expert</title>
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&family=Crimson+Text:ital@0;1&display=swap" rel="stylesheet" />
   <style>
@@ -207,11 +208,17 @@
     }
 
     .avatar.shade {
-      background: var(--accent);
-      color: #fff;
+      background: transparent;
       box-shadow: 0 0 12px var(--glow);
-      font-family: 'Playfair Display', serif;
-      font-weight: 700;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .avatar.shade img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
     }
 
     .avatar.user {
@@ -461,7 +468,14 @@
 
     const avatar = document.createElement('div');
     avatar.className = `avatar ${role === 'bot' ? 'shade' : 'user'}`;
-    avatar.textContent = role === 'bot' ? 'S' : 'You'[0];
+    if (role === 'bot') {
+      const img = document.createElement('img');
+      img.src = '/bot_pfp.png';
+      img.alt = 'SHADE';
+      avatar.appendChild(img);
+    } else {
+      avatar.textContent = 'You'[0];
+    }
 
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
@@ -488,7 +502,10 @@
 
     const avatar = document.createElement('div');
     avatar.className = 'avatar shade';
-    avatar.textContent = 'S';
+    const img = document.createElement('img');
+    img.src = '/bot_pfp.png';
+    img.alt = 'SHADE';
+    avatar.appendChild(img);
 
     const bubble = document.createElement('div');
     bubble.className = 'bubble typing-indicator';
