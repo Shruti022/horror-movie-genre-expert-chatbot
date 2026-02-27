@@ -1,0 +1,25 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$_PROJECT_ID/shade-bot', '.']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$_PROJECT_ID/shade-bot']
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'shade-bot'
+      - '--image=gcr.io/$_PROJECT_ID/shade-bot'
+      - '--platform=managed'
+      - '--region=us-central1'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--memory=512Mi'
+      - '--set-env-vars=GCP_PROJECT=$_PROJECT_ID'
+
+images:
+  - 'gcr.io/$_PROJECT_ID/shade-bot'
+
+substitutions:
+  _PROJECT_ID: 'ieor-4576-487000'

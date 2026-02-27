@@ -2,7 +2,7 @@
 name = "psych-horror-bot"
 version = "0.1.0"
 description = "Psychological Horror Film Expert Chatbot"
-readme = "README.md"
+
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",

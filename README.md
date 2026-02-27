@@ -102,7 +102,8 @@ DISTRESS_KEYWORDS = re.compile(
 ### Prerequisites
 - Python 3.11+
 - [uv](https://github.com/astral-sh/uv) package manager
-- Gemini API key ([get one free](https://aistudio.google.com/))
+- A GCP project with Vertex AI API enabled
+- `gcloud` CLI authenticated (`gcloud auth application-default login`)
 
 ### Setup
 
@@ -113,16 +114,16 @@ cd shade-psych-horror-bot
 
 # Create .env
 cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
+# Edit .env and set GCP_PROJECT to your GCP project ID
 
 # Install dependencies
 uv sync
 
 # Run the server
-uv run uvicorn app.main:app --reload --port 8000
+uv run uvicorn app.main:app --reload --port 8080
 ```
 
-Open http://localhost:8000 in your browser.
+Open http://localhost:8080 in your browser.
 
 ---
 
@@ -167,8 +168,16 @@ Pass threshold: ≥70% criteria met for rubric; ≥6/10 score for golden-referen
 
 ## Deploying to GCP Cloud Run
 
+### Using Cloud Build (recommended)
+
 ```bash
-# Set your project
+# Submit build — uses cloudbuild.yaml to build, push, and deploy
+gcloud builds submit --config cloudbuild.yaml
+```
+
+### Manual deploy
+
+```bash
 export PROJECT_ID=your-gcp-project-id
 export REGION=us-central1
 
@@ -181,7 +190,7 @@ gcloud run deploy shade-bot \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
-  --set-env-vars GEMINI_API_KEY=your_key_here \
+  --set-env-vars GCP_PROJECT=$PROJECT_ID \
   --port 8080 \
   --memory 512Mi
 ```

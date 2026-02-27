@@ -268,3 +268,7 @@ if frontend_path.exists():
     @app.get("/bot_pfp.png")
     async def bot_pfp():
         return FileResponse(str(frontend_path / "bot_pfp.png"))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)
