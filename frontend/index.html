@@ -480,12 +480,20 @@
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
     // Simple markdown-lite: bold and italic
+    //bubble.innerHTML = text
+    //  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    //  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    //  .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    //  .replace(/\n\n/g, '<br><br>')
+    //  .replace(/\n/g, '<br>');
     bubble.innerHTML = text
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\n\n/g, '<br><br>')
-      .replace(/\n/g, '<br>');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^\* (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ul style="margin:0.5rem 0 0.5rem 1.2rem;padding:0;list-style:disc;">$1</ul>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
 
     msg.appendChild(avatar);
     msg.appendChild(bubble);
