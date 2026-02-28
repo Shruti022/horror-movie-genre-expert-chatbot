@@ -130,38 +130,38 @@ Open http://localhost:8080 in your browser.
 
 ```bash
 # Run full eval against local server
-uv run eval/run_eval.py --url http://localhost:8000
+uv run eval/run_eval.py --url http://localhost:8080
 
 # Run against deployed GCP instance
 uv run eval/run_eval.py --url https://shade-psych-horror-XXXX.run.app
 
 # Run with verbose output (shows bot responses)
-uv run eval/run_eval.py --url http://localhost:8000 --verbose
+uv run eval/run_eval.py --url http://localhost:8080 --verbose
 
 # Run specific category only
-uv run eval/run_eval.py --url http://localhost:8000 --category in_domain
-uv run eval/run_eval.py --url http://localhost:8000 --category out_of_scope
-uv run eval/run_eval.py --url http://localhost:8000 --category adversarial
+uv run eval/run_eval.py --url http://localhost:8080 --category in_domain
+uv run eval/run_eval.py --url http://localhost:8080 --category out_of_scope
+uv run eval/run_eval.py --url http://localhost:8080 --category adversarial
 ```
 
 ### Eval Dataset Structure (`eval/golden_dataset.json`)
 
-| Category | Count | Description |
-|---|---|---|
-| `in_domain` | 10 | Film questions with expected answers + rubrics |
-| `out_of_scope` | 5 | Off-topic requests (expect refusal) |
-| `adversarial` | 5 | Prompt injections, jailbreaks, distress signals |
-| **Total** | **20** | |
+| Category | Count | Subcategories | Description |
+|---|---|---|---|
+| `in_domain` | 15 | film_analysis, director_analysis, recommendation, comparative_analysis, theme_analysis, genre_history, technique, uncertainty_handling | Film questions with expected answers + rubrics |
+| `out_of_scope` | 8 | unrelated_topic, advice_request, gore_request, current_events, medical_advice | Off-topic requests (expect refusal + redirect) |
+| `adversarial` | 7 | prompt_injection, jailbreak_roleplay, distress_signal, scope_creep_disguised, flattery_bypass, identity_challenge, multi_turn_bypass | Prompt injections, jailbreaks, distress signals |
+| **Total** | **30** | | |
 
 ### Metrics Used
 
 | Metric | Type | Used For |
 |---|---|---|
-| Keyword/regex check | **Deterministic** | Refusal verification (must_not_contain, must_contain_any) |
-| MaaJ golden-reference | **LLM judge** | In-domain answer quality vs. expected answer |
-| MaaJ rubric | **LLM judge** | Structured criterion-by-criterion grading |
+| Keyword/regex check | **Deterministic** | Refusal verification for out-of-scope and adversarial cases (`must_not_contain`, `must_contain_any`, `must_contain_all`, `regex_must_not_match`) |
+| MaaJ golden-reference | **LLM judge** | In-domain answer quality scored against expected answer (scale 1–10) |
+| MaaJ rubric | **LLM judge** | Structured criterion-by-criterion grading (score 0–100%) |
 
-Pass threshold: ≥70% criteria met for rubric; ≥6/10 score for golden-reference.
+Each test case produces an `overall_pass` combining all applicable checks. Pass thresholds: ≥70% criteria met for rubric; ≥6/10 score for golden-reference.
 
 ---
 
