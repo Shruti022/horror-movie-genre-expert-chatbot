@@ -5,7 +5,7 @@ SHADE Evaluation Harness
 Runs the full golden dataset against the live SHADE API.
 
 Usage:
-  uv run eval/run_eval.py --url http://localhost:8000
+  uv run eval/run_eval.py --url http://localhost:8080
   uv run eval/run_eval.py --url https://your-gcp-url.run.app
 """
 
@@ -404,7 +404,7 @@ def run_eval(url: str, dataset_path: str, verbose: bool = False, category_filter
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SHADE Eval Harness")
-    parser.add_argument("--url", default="http://localhost:8000")
+    parser.add_argument("--url", default="http://localhost:8080")
     parser.add_argument("--dataset", default="eval/golden_dataset.json")
     parser.add_argument("--verbose", "-v", action="store_true")
     parser.add_argument("--category", choices=["in_domain", "out_of_scope", "adversarial"])
