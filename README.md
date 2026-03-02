@@ -4,7 +4,7 @@
 
 **SHADE** is a domain-expert chatbot specializing exclusively in **psychological horror cinema** — the films that burrow into the subconscious and linger there. Built for Columbia's Agentic AI for Analytics course.
 
-**Live URL:** `https://horror-movie-genre-expert-chatbot-419544807514.us-south1.run.app`   
+**Live URL:** https://horror-movie-genre-expert-chatbot-419544807514.us-south1.run.app   
 
 ---
 
